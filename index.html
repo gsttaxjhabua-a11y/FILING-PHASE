@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIS / TIS Raw Computation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="material-symbols-outlined">calculate</span><span>AIS / TIS Computation<small>Raw computation workspace</small></span></div>
+    <nav class="nav" id="nav">
+      <a href="#" data-view="upload" class="active"><span class="material-symbols-outlined">upload_file</span> Upload</a>
+      <a href="#" data-view="records"><span class="material-symbols-outlined">table_rows</span> Extracted records</a>
+      <a href="#" data-view="recon"><span class="material-symbols-outlined">compare_arrows</span> Reconciliation</a>
+      <a href="#" data-view="comp"><span class="material-symbols-outlined">calculate</span> Raw computation</a>
+      <a href="#" data-view="missing"><span class="material-symbols-outlined">report</span> Missing information</a>
+      <a href="#" data-view="review"><span class="material-symbols-outlined">fact_check</span> Review &amp; export</a>
+      <a href="#" data-view="audit"><span class="material-symbols-outlined">history</span> Audit trail</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="flex items-center gap-2">
+        <button class="icon-btn menu-toggle" id="menuBtn" aria-label="Menu"><span class="material-symbols-outlined">menu</span></button>
+        <h2 id="viewTitle">Upload</h2>
+      </div>
+      <div class="topbar-actions">
+        <span class="case-chip" id="caseChip"></span>
+        <span class="badge badge-partial"><span class="material-symbols-outlined">edit_note</span>Draft</span>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== Upload ===== -->
+      <section class="view" id="view-upload">
+        <div class="hero">
+          <h2>Upload AIS and TIS, get a raw computation</h2>
+          <p>Files are read inside your browser. Nothing is sent to a server. The result is a draft that you review and edit line by line.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><h4>Case details</h4></div>
+          <div class="grid grid-3">
+            <div class="field"><label for="tpName">Taxpayer name</label><input id="tpName" data-change="name" placeholder="Enter full name" autocomplete="off"></div>
+            <div class="field"><label for="tpPan">PAN</label><input id="tpPan" data-change="pan" placeholder="ABCDE1234F" maxlength="10" autocomplete="off" style="text-transform:uppercase"><div class="muted mt-2" style="margin-top:4px">PAN is not saved in the browser. Enter it again after reopening.</div></div>
+            <div class="field"><label for="fySel">Financial year</label><select id="fySel" data-change="fy"></select><div class="muted" style="margin-top:4px" id="ayText"></div></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="dropzone" tabindex="0" role="button" data-kind="AIS" aria-label="Upload AIS files">
+            <span class="material-symbols-outlined">description</span>
+            <h4>Annual Information Statement (AIS)</h4>
+            <div class="muted">Drop files here or press Enter to browse. JSON, CSV or PDF (scanned PDFs are read with OCR).</div>
+            <input type="file" accept=".json,.csv,.pdf" multiple>
+          </div>
+          <div class="dropzone" tabindex="0" role="button" data-kind="TIS" aria-label="Upload TIS files">
+            <span class="material-symbols-outlined">summarize</span>
+            <h4>Taxpayer Information Summary (TIS)</h4>
+            <div class="muted">Drop files here or press Enter to browse. JSON, CSV or PDF (scanned PDFs are read with OCR).</div>
+            <input type="file" accept=".json,.csv,.pdf" multiple>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <h4>Documents</h4>
+            <div class="flex gap-2 wrap">
+              <div class="field mb-0" style="min-width:230px"><label for="pdfPw" class="small" style="margin-bottom:2px">PDF password (if protected)</label><input id="pdfPw" type="password" placeholder="Not stored" autocomplete="off" style="min-height:36px"></div>
+              <button class="btn btn-outline btn-sm" data-action="sample" style="align-self:end"><span class="material-symbols-outlined">science</span> Load sample data</button>
+              <button class="btn btn-outline btn-sm" data-action="clear" style="align-self:end"><span class="material-symbols-outlined">delete</span> Clear all data</button>
+            </div>
+          </div>
+          <div class="notice mb-4"><span class="material-symbols-outlined">info</span><div>Portal PDFs are usually protected with a password built from your PAN and date of birth. Check the portal's instructions, then enter it above before you upload. The AIS and TIS file layouts are not verified in this version, so always check the extracted records.</div></div>
+          <div id="docList"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" id="view-records"></section>
+      <section class="view hidden" id="view-recon"></section>
+      <section class="view hidden" id="view-comp"></section>
+      <section class="view hidden" id="view-missing"></section>
+      <section class="view hidden" id="view-review"></section>
+      <section class="view hidden" id="view-audit"></section>
+
+    </main>
+  </div>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle"></dialog>
+<div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+<div id="print-report"></div>
+
+<script src="engine.js"></script>
+<script src="pdfparse.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
